@@ -1,79 +1,209 @@
-# Terraform Provider
+# 🚀 Task 3 - Infrastructure as Code (IaC) with Terraform & Docker
 
-- Website: https://www.terraform.io
-- Provider: [kreuzwerker/docker](https://registry.terraform.io/providers/kreuzwerker/docker/latest)
-- Slack: [@gophers/terraform-provider-docker](https://gophers.slack.com/archives/C01G9TN5V36)
+## 📌 Objective
 
+The objective of this task was to provision a local Docker container using Terraform, applying the principles of Infrastructure as Code (IaC).
 
-## Requirements
--	[Terraform](https://www.terraform.io/downloads.html) >=0.12.x
--	[Go](https://golang.org/doc/install) 1.15.x (to build the provider plugin)
+---
 
-## Building The Provider
+## 🧰 Tools & Technologies Used
 
-```sh
-$ git clone git@github.com:kreuzwerker/terraform-provider-docker
-$ make build
+- [Terraform](https://developer.hashicorp.com/terraform/downloads)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [WSL (Ubuntu)]
+- Git & GitHub
+
+---
+
+## 🧱 Steps I Performed
+
+### ✅ Step 1: Installed Terraform
+
+I downloaded and installed Terraform CLI from the [official Terraform website](https://developer.hashicorp.com/terraform/downloads). After installation, I verified it using:
+
+```bash
+terraform -version
 ```
 
-## Example usage
+### ✅ Step 2: Docker Setup
+
+Docker Desktop was already preinstalled on my system. I ensured it was running correctly and integrated with WSL2.
+
+---
+
+## 🔧 Configuring Docker for Terraform
+
+To allow Terraform to connect with Docker on my Windows machine, I modified the Docker Engine settings:
+
+1. I opened Docker Desktop → ⚙️ Settings → Docker Engine.
+2. I added the "hosts" parameter to enable communication via Windows named pipe.
+
+### 🔧 Updated Docker Engine JSON
+
+```json
+{
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "20GB",
+      "enabled": true
+    }
+  },
+  "experimental": false,
+  "hosts": ["npipe://"]
+}
+```
+
+3. Then, I clicked Apply & Restart.
+
+---
+
+## 📁 Project Initialization
+
+### Step 3: Created and Cloned GitHub Repository
+
+I created a new repository on GitHub for this task and cloned it locally using:
+
+```bash
+git clone https://github.com/Harsh2227kumar/ID-4-IaC-Terraform/.git
+cd task-3-terraform-docker
+```
+
+---
+
+## ✍️ Step 4: Wrote the Terraform Configuration
+
+I created a file named `main.tf` and added the following code to define the Docker image and container:
+
 ```hcl
-# Set the required provider and versions
 terraform {
   required_providers {
-    # We recommend pinning to the specific version of the Docker Provider you're using
-    # since new versions are released frequently
     docker = {
       source  = "kreuzwerker/docker"
-      version = "2.13.0"
+      version = "~> 2.13.0"
     }
   }
 }
 
-# Configure the docker provider
 provider "docker" {
+  host = "unix:///var/run/docker.sock"
 }
-
-# Create a docker image resource
-# -> docker pull nginx:latest
 resource "docker_image" "nginx" {
   name         = "nginx:latest"
-  keep_locally = true
+  keep_locally = false
 }
 
-# Create a docker container resource
-# -> same as 'docker run --name nginx -p8080:80 -d nginx:latest'
-resource "docker_container" "nginx" {
-  name    = "nginx"
-  image   = docker_image.nginx.latest
-
+resource "docker_container" "nginx_server" {
+  name  = "nginx_container"
+  image = docker_image.nginx.name
   ports {
-    external = 8080
     internal = 80
+    external = 8080
   }
 }
 
-# Or create a service resource
-# -> same as 'docker service create -d -p 8081:80 --name nginx-service --replicas 2 nginx:latest'
-resource "docker_service" "nginx_service" {
-  name = "nginx-service"
-  task_spec {
-    container_spec {
-      image = docker_image.nginx.repo_digest
-    }
-  }
-
-  mode {
-    replicated {
-      replicas = 2
-    }
-  }
-
-  endpoint_spec {
-    ports {
-      published_port = 8081
-      target_port    = 80
-    }
-  }
-}
 ```
+
+---
+
+## 🐧 Step 5: Used WSL (Ubuntu) to Run Terraform Commands
+
+I opened the terminal in Docker Desktop and switched to Ubuntu via WSL. Then, I navigated to my project directory:
+
+```bash
+wsl
+cd /mnt/f/Internship/Day\ 4/ID-4-IaC-Terraform
+```
+
+---
+
+## ⚙️ Step 6: Executed Terraform Workflow
+
+### 🔹 Initialized Terraform
+
+I initialized the working directory to download necessary providers:
+
+```bash
+terraform init
+```
+
+### 🔹 Planned the Infrastructure
+
+I checked what changes Terraform would make:
+
+```bash
+terraform plan
+```
+
+### 🔹 Applied the Configuration
+
+I created the Docker image and container using:
+
+```bash
+terraform apply
+```
+
+I confirmed with `yes` when prompted.
+
+---
+
+## ✅ Result
+
+- Terraform pulled the **nginx:latest** image.
+- It created and started a Docker container named `nginx_container`.
+- The container was visible in Docker Desktop.
+- I successfully accessed the running container at:
+
+```
+http://localhost:8080
+```
+
+---
+
+## 🧼 Optional Cleanup
+
+To clean up the container and image, I used:
+
+```bash
+terraform destroy
+```
+
+---
+
+## 📤 GitHub Submission
+
+I committed and pushed the following files to my GitHub repository:
+
+- `main.tf`
+- `README.md`
+- (Optional) Screenshots folder
+
+```bash
+git add .
+git commit -m "Completed Task 3 - Terraform Docker provisioning"
+git push origin main
+```
+
+---
+
+## 📸 Screenshots (Optional)
+
+- Docker container running
+- Terraform output logs
+- Nginx welcome page in browser
+
+---
+
+## 👨‍💻 About Me
+
+- **Name:** _[Your Name Here]_
+- **Internship Day:** 4
+- **Task ID:** ID-4-IaC-Terraform
+
+---
+
+## 🏁 Conclusion
+
+By completing this task, I learned how to:
+- Use Terraform to provision Docker resources
+- Apply Infrastructure as Code (IaC) principles
+- Automate container creation in a reproducible and version-controlled way
